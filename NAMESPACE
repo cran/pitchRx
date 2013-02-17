@@ -1,0 +1,4 @@
+export(animateFX)
+export(scrapeFX)
+export(strikeFX)
+export(urlsToDataFrame)
