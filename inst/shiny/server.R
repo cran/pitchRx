@@ -1,7 +1,10 @@
 library(shiny)
+if (!require(animation)) install.packages("animation", repos="http://streaming.stat.iastate.edu/CRAN/")
+if (!require(pitchRx)) install.packages("pitchRx", repos="http://streaming.stat.iastate.edu/CRAN/")
+if (!require(Cairo)) install.packages("Cairo", repos="http://streaming.stat.iastate.edu/CRAN/")
 library(animation)
-library(devtools)
 library(pitchRx)
+library(Cairo)
 
 valid <- function(input, default) { 
   if (is.null(input)) return(FALSE)
@@ -120,8 +123,6 @@ shinyServer(function(input, output) {
 #       print(ggplot(data, custom_map)+geom_point()+xlim(input$xmin, input$xmax)+ylim(input$ymin, input$ymax)) 
 #     }
     if (input$visMethod == "animate") {
-      library(Cairo)
-      library(animation)
       oopt <- ani.options(interval = 0.01, ani.dev = CairoPNG, 
                          title = "My pitchRx Animation", 
                          description = "Generated from <a href='http://cpsievert.github.com/home.html'>Carson Sievert</a>'s PITCHf/x <a href='https://gist.github.com/4440099'>visualization tool</a>")
@@ -164,8 +165,11 @@ shinyServer(function(input, output) {
           den2 <- list(input$vals2)
           names(den2) <- input$denVar2
       }
+      if (!is.null(input$pointColor)) {
+        pointColor <- input$pointColor
+      } else pointColor <- "pitch_types"
       print(strikeFX(data, geom=input$geom, point.size=input$point_size, 
-                     point.alpha=input$point_alpha, color=input$pointColor, density1=den1,
+                     point.alpha=input$point_alpha, color=pointColor, density1=den1,
                      density2=den2, layer=list(facet_layer, coord_equal), contour=contours, 
                      adjust=a, limitz=c(input$xmin, input$xmax, input$ymin, input$ymax),
                      binwidth=binwidths, parent=TRUE))
