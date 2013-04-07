@@ -44,20 +44,20 @@ strikeFX <- function(data, geom = "point", point.size=3, point.alpha=1/3, color 
   FX <- data[complete.cases(data[,locations]),] #get rid of records missing the necessary parameters
   for (i in locations)
     FX[,i] <- as.numeric(FX[,i])
-  layers <- NULL
   if (parent) { #ugly workaround for shiny implementation
+    layers <- NULL
     for (i in layer)
       layers <- list(layers, eval(i)) 
   } else {
     layers <- layer
   }
-  facets <- getFacets(layers)
+  facets <- getFacets(layer=layers)
   if ("b_height" %in% names(FX)) { #plot strikezones (and adjust loactions) if heights are numeric
     boundaries <- getStrikezones(FX, facets, strikeFX = TRUE) 
     if (adjust) {
       FX$pz_adj <- boundaries[[1]] #adjusted vertical locations
     } else FX$pz_adj <- FX$pz # "adjusted" vert locations
-    FX <- join(FX, boundaries[[2]], by="stand", type="inner")
+    FX <- plyr::join(FX, boundaries[[2]], by="stand", type="inner")
   } else {
     FX$pz_adj <- FX$pz
     zones <- NULL
@@ -73,7 +73,7 @@ strikeFX <- function(data, geom = "point", point.size=3, point.alpha=1/3, color 
   if (geom %in% c("bin", "hex", "tile")) { #special handling for (2D) density geometries
     if (identical(density1, density2)) { #densities are not differenced
       FX1 <- subsetFX(FX, density1)
-      t <- ggplot(data=FX1, aes(x=px, y=pz_adj), environment=environment())+labelz+xrange+yrange
+      t <- ggplot(data=FX1, aes(x=px, y=pz_adj))+labelz+xrange+yrange
       if (geom %in% "bin") t <- t + geom_bin2d(...) 
       if (geom %in% "hex") t <- t + geom_hex(...)
       if (geom %in% "tile") t <- t + stat_density2d(geom="tile", aes(fill = ..density..), contour = FALSE)
@@ -95,15 +95,15 @@ strikeFX <- function(data, geom = "point", point.size=3, point.alpha=1/3, color 
       }
     }
     dens <- join(densities, boundaries[[2]], type="inner") #defaults to join "by" all common variables
-    t2 <- ggplot(data=dens)+layers+labelz+xrange+yrange+scale_fill_gradient2(midpoint=0)
+    t2 <- ggplot(data=dens)+labelz+xrange+yrange+scale_fill_gradient2(midpoint=0)
     if (geom %in% c("bin", "tile")) t2 <- t2 + stat_summary2d(aes(x=x,y=y,z=z), ...) 
     if (geom %in% "hex") t2 <- t2 + stat_summary_hex(aes(x=x,y=y,z=z), ...)
     if (contour) t2 <- t2 + stat_contour(aes(x=x,y=y,z=z)) #passing binwidth here throws error
     t2 <- t2 + geom_rect(mapping=aes(ymax = top, ymin = bottom, xmax = right, xmin = left), alpha=0, fill="pink", colour="grey20")
-    return(t2)
+    return(t2+layers)
   }
   if (geom %in% "point") {
-    p <- ggplot(data=FX, aes(ymax=top, ymin=bottom, xmax=right, xmin=left), environment=environment()) + legendz + labelz + xrange + yrange + scale_size(guide = "none") + scale_alpha(guide="none")
+    p <- ggplot(data=FX, aes(ymax=top, ymin=bottom, xmax=right, xmin=left)) + legendz + labelz + xrange + yrange + scale_size(guide = "none") + scale_alpha(guide="none")
     p <- p + geom_rect(mapping=aes(ymax = top, ymin = bottom, xmax = right, xmin = left), alpha=0, fill="pink", colour="black") #draw strikezones
     if (color == "") {
       point_mapping <- aes_string(x = "px", y="pz_adj")
@@ -137,7 +137,7 @@ subsetFX <- function(data, density) {
 #' Computes differenced 2D Kernel Density Estimates using MASS::kde2d
 #'
 #' Computes two densities on the same support and subtracts them according to the \code{density} expression.
-#' The expression should look as follows: variable~value1-value2.
+#' 
 #' 
 #' @param data PITCHf/x data
 #' @param density1 either density1 or density2 passed on from \link{strikeFX}.
