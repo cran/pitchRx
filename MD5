@@ -1,8 +1,8 @@
-86b905152fdbb952e019b59d928f8652 *DESCRIPTION
-a999cda9dbdf1137b295c25cfc4f3bae *NAMESPACE
-b4e9e266b4165c02d03fcc5073a82e1c *NEWS
+a45a0805d9ba3ae59ae3d26eec0e6b03 *DESCRIPTION
+93038ef961b9f2652041b4977034b9a6 *NAMESPACE
+ca5f75b37a87ad527c72c464ab463d03 *NEWS
 db1f56549b691a89d9c9a51eff0afe0d *R/animateFX.R
-84132e089191d22ec427723880dc7623 *R/fields.R
+8f3633f678dbd3de3c2366c1a55f2116 *R/fields.R
 c7963a22452b670d650eb86bf6e2d1e6 *R/getFacets.R
 c8eac88e7ca18ca8f8fc9d6e0764e97a *R/getSnapshots.R
 489f7e561ffac09be54dabfff90593d9 *R/getStrikezones.R
@@ -11,7 +11,7 @@ deced8469ef71c6c091a4d0925aee8b6 *R/interactiveFX.R
 05e94945281f15c95349051c4d6be806 *R/pitches.R
 ef4c7336e681c1c2ecc45588f9ecff35 *R/players.R
 2d78d79ff79634fe5329822866daade4 *R/scrapeFX.R
-cf5893edd8bd99a5a6bb67818d613654 *R/strikeFX.R
+1d77e30ef4a48752a5a1de32062b06ec *R/strikeFX.R
 59053b077ff2f673f7ed3d9e8295266a *R/urls.R
 781f16124f959a4c233926626fb920a8 *R/urlsToDataFrame.R
 efe469320c3f7ebe755ab0ba2e2e735d *README.md
@@ -19,7 +19,10 @@ efe469320c3f7ebe755ab0ba2e2e735d *README.md
 b1c010b6ce2021e73d0d9308e21b7a41 *data/pitches.rda
 345f9220b5be755d1b7f3e82b94fa5b0 *data/players.rda
 f00c6abd1b996369a0358429b9c98c1e *data/urls.rda
-c37cdd1fcbc2c90610fbbf941cab96b8 *inst/shiny/server.R
+da59918cc8a1ab0faea158adbddf6525 *inst/doc/pitchRx-demo.R
+1bf5f2f8a60f810f1b7d8bf75d63ec82 *inst/doc/pitchRx-demo.Rmd
+ecc075ed2e33932600efee1f76201737 *inst/doc/pitchRx-demo.html
+9ce46f62f4b5f6778510c9f982ff142b *inst/shiny/server.R
 88e5fe1cbee07f90d65af88488cf1a14 *inst/shiny/ui.R
 b83b4bcb718c1b444f7539d2de499f87 *man/addPitchCount.Rd
 ebd7d829bce64e9fed4e66dfbfb62ab9 *man/adjust.Rd
@@ -31,7 +34,7 @@ c17ffb25abefa721fa307416f6a8b808 *man/createAtbatID.Rd
 5b415c3a6adee5d5619acf1349ed4ad2 *man/diffDensity.Rd
 f68e84af13ee90ba66231f30dea4e59c *man/docsToDFs.Rd
 2a25db195db79c9fd8086462a23cf131 *man/docsToDataFrame.Rd
-ddcfcc4b0cb191078a31d4ce808f12c0 *man/fields.Rd
+456d62c55678ab41381e5632a854575b *man/fields.Rd
 32a54e2aeb863443e069a947fd5d99e7 *man/getFacets.Rd
 ec933283a96d91ab809ec649c7aa8dac *man/getSnapshots.Rd
 673f91d2b2fc121d698f913a1e8b1026 *man/getStrikezones.Rd
@@ -40,7 +43,7 @@ cb6e179f06363eea5ba1988061c4fcc9 *man/interactiveFX.Rd
 2662ed35c7fa2c4f313a56e02018189e *man/pitches.Rd
 71e3a3c4e5fb24c4f648bb18212bbd7c *man/players.Rd
 317456bd78d75423432f1d5c7cf041d1 *man/scrapeFX.Rd
-b8b4e21678aedee4543e923c6fce2aff *man/strikeFX.Rd
+a71508b491da4ee0e50f84857daafee9 *man/strikeFX.Rd
 0172c9b24d31b13a54c5d64983a98455 *man/subsetFX.Rd
 f3fca60b7ca0d2d08d8fe189ca8c4da4 *man/updatePlayers.Rd
 7ee2c8dc150cb3e4b06166da483f427f *man/updateUrls.Rd
