@@ -69,7 +69,7 @@ animateFX(pitches, point.size=5, interval=0.1, layer=list(facet_grid(pitcher_nam
 ## interactiveFX(Rivera)
 
 
-## @knitr strike, fig.height=14, fig.width=10, dev="CairoPNG"
+## @knitr strike, fig.height=7, fig.width=10, dev="CairoPNG"
 strikes <- subset(pitches, des == "Called Strike")
 strikeFX(strikes, geom="tile", layer=facet_grid(.~stand))
 
@@ -78,7 +78,7 @@ strikeFX(strikes, geom="tile", layer=facet_grid(.~stand))
 ## strikeFX(pitches, geom="tile", density1=list(des="Called Strike"), density2=list(des="Called Strike"), layer=facet_grid(.~stand))
 
 
-## @knitr strike3, fig.height=14, fig.width=10, dev="CairoPNG"
+## @knitr strike3, fig.height=7, fig.width=10, dev="CairoPNG"
 strikeFX(pitches, geom="tile", density1=list(des="Called Strike"), density2=list(des="Ball"), layer=facet_grid(.~stand))
 
 
@@ -87,12 +87,11 @@ Rivera <- subset(pitches, pitcher_name=="Mariano Rivera")
 
 
 ## @knitr strike4, fig.height=10, fig.width=8, dev="CairoPNG"
-library(ggsubplot) #required for subplot2d option
 Rivera.R <- subset(Rivera, stand=="R")
 strikeFX(Rivera.R, geom="subplot2d", fill="type")
 
 
-## @knitr mgcv, fig.height=14, fig.width=10, dev="CairoPNG"
+## @knitr mgcv, fig.height=7, fig.width=10, dev="CairoPNG"
 noswing <- subset(pitches, des %in% c("Ball", "Called Strike"))
 noswing$strike <- as.numeric(noswing$des %in% "Called Strike")
 strikeFX(noswing, model=gam(strike ~ s(px)+s(pz), family = binomial(link='logit')), layer=facet_grid(.~stand))
