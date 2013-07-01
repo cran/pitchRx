@@ -4,13 +4,13 @@
 \usage{
   interactiveFX(data, spheres = TRUE,
     color = "pitch_types", interval = 0.01, alpha = 1,
-    print.legend = TRUE, ...)
+    show.legend = TRUE, ...)
 }
 \arguments{
   \item{data}{data.frame with appropriately named PITCHf/x
   variables}
 
-  \item{spheres}{Use rgl::spheres3d or rgl::plot3d?}
+  \item{spheres}{Use \link{spheres3d} or \link{plot3d}?}
 
   \item{color}{variable used to control coloring scheme.}
 
@@ -18,19 +18,16 @@
 
   \item{alpha}{color transparency}
 
-  \item{print.legend}{print coloring legend in R console?}
+  \item{show.legend}{print coloring legend in R console?}
 
-  \item{...}{other param passed onto rgl::spheres3d or
-  rgl::plot3d}
+  \item{...}{other param passed onto \link{spheres3d} or
+  \link{plot3d}}
 }
 \value{
   rgl object is returned.
 }
 \description{
   Three-dimensional plot of pitch trajectories.
-}
-\details{
-  Details go here.
 }
 \examples{
 data(pitches)
