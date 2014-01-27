@@ -1,11 +1,11 @@
-#' Field names for tables obtained by pitchRx::scrapeFX
+#' Master list of tables and fields returned by \code{scrape}
 #' 
-#' A list of character vectors that specify the desired subset variables of the atbat, pitch, game and player tables.
-#' These vectors can be used to reduce parsing time of number of columns returned by \code{scrapeFX}.
+#' This data object is used to find to set of fields for tables in a database.
+#' Since it's much easier to write to a table with more fields (than vice versa), 
+#' this object contains every possible field for each table.
 #' 
 #' @docType data
 #' @name fields
 #' @author Carson Sievert
 #'
-
 NULL

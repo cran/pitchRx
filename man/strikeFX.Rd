@@ -2,12 +2,11 @@
 \alias{strikeFX}
 \title{Visualize PITCHf/x strikezones}
 \usage{
-  strikeFX(data, geom = "point", contour = FALSE,
-    point.size = 3, point.alpha = 1/3,
-    color = "pitch_types", fill = "des", layer = list(),
-    model, model.save = TRUE, density1 = list(),
-    density2 = list(), limitz = c(-2.5, 2.5, 0, 5),
-    adjust = FALSE, draw_zones = TRUE, parent = FALSE, ...)
+strikeFX(data, geom = "point", contour = FALSE, point.size = 3,
+  point.alpha = 1/3, color = "pitch_types", fill = "des",
+  layer = list(), model, model.save = TRUE, density1 = list(),
+  density2 = list(), limitz = c(-2, 2, 0.5, 4.5), adjust = FALSE,
+  draw_zones = TRUE, parent = FALSE, ...)
 }
 \arguments{
   \item{data}{PITCHf/x data to be visualized.}
@@ -67,30 +66,42 @@
   \item{...}{extra options passed onto geom commands}
 }
 \value{
-  Returns a ggplot2 object.
+Returns a ggplot2 object.
 }
 \description{
-  A suite of bivariate plots with "px" on the horizontal
-  axis and "pz" on the vertical axis.
+A suite of bivariate plots with "px" on the horizontal axis
+and "pz" on the vertical axis.
 }
 \examples{
 data(pitches)
-p <- strikeFX(pitches, geom="tile", layer=facet_grid(.~stand))
-p+theme(aspect.ratio=1)
+
+strikeFX(pitches)
 \dontrun{
+strikeFX(pitches, layer=facet_grid(.~stand))
+ #silly example on how to modify default settings and add layers
+ strikeFX(pitches, color="", layer=facet_grid(s~stand))+
+ geom_point(aes(x=px, y=pz, shape=pitch_types))+ #you could add color here
+ geom_text(aes(x=px+0.5, y=pz, label=b))
+
+ p <- strikeFX(pitches, geom="tile", layer=facet_grid(.~stand))
+ p+theme(aspect.ratio=1)
+
 strikeFX(pitches, geom="hex", density1=list(des="Called Strike"), density2=list(des="Ball"),
          draw_zones=FALSE, contour=TRUE, layer=facet_grid(.~stand))
+
 noswing <- subset(pitches, des \%in\% c("Ball", "Called Strike"))
 noswing$strike <- as.numeric(noswing$des \%in\% "Called Strike")
-m1 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) +
+library(mgcv)
+m1 <- bam(strike ~ s(px, pz, by=factor(stand)) +
                factor(stand), data=noswing, family = binomial(link='logit'))
 strikeFX(noswing, model=m1, layer=facet_grid(.~stand))
+
 #If sample size is an issue, try increasing the binwidths
 strikeFX(noswing, model=m1, layer=facet_grid(.~stand), binwidth=c(.5,.5))
-m2 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(top_inning)) +
-           factor(stand) + factor(top_inning), data=noswing, family = binomial(link='logit'))
-strikeFX(noswing, geom="bin", model=m2, density1=list(top_inning="Y"),
-         density2=list(top_inning="N"), layer=facet_grid(.~stand), binwidth=c(.5, .5))
+m2 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(inning_side)) +
+           factor(stand) + factor(inning_side), data=noswing, family = binomial(link='logit'))
+strikeFX(noswing, geom="bin", model=m2, density1=list(inning_side="top"),
+         density2=list(inning_side="bottom"), layer=facet_grid(.~stand), binwidth=c(.5, .5))
 }
 }
 

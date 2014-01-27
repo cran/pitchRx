@@ -2,8 +2,7 @@
 \alias{scrapeFX}
 \title{Scrape Major League Baseball's PITCHf/x Data}
 \usage{
-  scrapeFX(start, end,
-    tables = list(atbat = fields$atbat, pitch = fields$pitch))
+scrapeFX(start, end, tables = list())
 }
 \arguments{
   \item{start}{date "yyyy-mm-dd" to commence scraping of
@@ -15,22 +14,24 @@
   \item{tables}{XML nodes to be parsed into a data frame}
 }
 \value{
-  Returns a list containing a data frame specific to each
-  element in \code{tables}. The default setting returns two
-  data frames. The larger one contains data "PITCHfx
-  parameters" for each pitch. The smaller one contains data
-  relevant to each atbat.
+Returns a list containing a data frame specific to each
+element in \code{tables}. The default setting returns two
+data frames. The larger one contains data "PITCHfx
+parameters" for each pitch. The smaller one contains data
+relevant to each atbat.
 }
 \description{
-  This function is a wrapper around \link{urlsToDataFrame}
-  which increases convenience for scraping PITCHf/x
-  directly from XML files.
+This function is deprecated as of version 1.0
 }
 \details{
-  Data should be collected on a yearly (or shorter) basis.
-  By default, records from the 'pitch' and 'atbat' level
-  are collected. One should manipulate the \code{tables}
-  parameter if other data is desired.
+This function is a wrapper around \link{urlsToDataFrame}
+which increases convenience for scraping PITCHf/x directly
+from XML files.
+
+Data should be collected on a yearly (or shorter) basis. By
+default, records from the 'pitch' and 'atbat' level are
+collected. One should manipulate the \code{tables}
+parameter if other data is desired.
 }
 \examples{
 \dontrun{
@@ -49,6 +50,6 @@ rm(data12)
 # (4) Repeat (1)-(3) for 2011, 2010, 2009 & 2008}
 }
 \seealso{
-  \link{urlsToDataFrame}
+\link{urlsToDataFrame}
 }
 

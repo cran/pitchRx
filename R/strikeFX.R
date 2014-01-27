@@ -30,26 +30,38 @@
 #' @importFrom MASS kde2d
 #' @examples
 #' data(pitches)
-#' p <- strikeFX(pitches, geom="tile", layer=facet_grid(.~stand))
-#' p+theme(aspect.ratio=1)
+#' 
+#' strikeFX(pitches)
 #' \dontrun{
+#' strikeFX(pitches, layer=facet_grid(.~stand))
+#'  #silly example on how to modify default settings and add layers
+#'  strikeFX(pitches, color="", layer=facet_grid(s~stand))+
+#'  geom_point(aes(x=px, y=pz, shape=pitch_types))+ #you could add color here
+#'  geom_text(aes(x=px+0.5, y=pz, label=b)) 
+#'  
+#'  p <- strikeFX(pitches, geom="tile", layer=facet_grid(.~stand))
+#'  p+theme(aspect.ratio=1)
+#' 
 #' strikeFX(pitches, geom="hex", density1=list(des="Called Strike"), density2=list(des="Ball"), 
 #'          draw_zones=FALSE, contour=TRUE, layer=facet_grid(.~stand))
+#'          
 #' noswing <- subset(pitches, des %in% c("Ball", "Called Strike"))
 #' noswing$strike <- as.numeric(noswing$des %in% "Called Strike")
-#' m1 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + 
+#' library(mgcv)
+#' m1 <- bam(strike ~ s(px, pz, by=factor(stand)) + 
 #'                factor(stand), data=noswing, family = binomial(link='logit'))
 #' strikeFX(noswing, model=m1, layer=facet_grid(.~stand))
+#' 
 #' #If sample size is an issue, try increasing the binwidths
 #' strikeFX(noswing, model=m1, layer=facet_grid(.~stand), binwidth=c(.5,.5))
-#' m2 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(top_inning)) + 
-#'            factor(stand) + factor(top_inning), data=noswing, family = binomial(link='logit'))
-#' strikeFX(noswing, geom="bin", model=m2, density1=list(top_inning="Y"), 
-#'          density2=list(top_inning="N"), layer=facet_grid(.~stand), binwidth=c(.5, .5))
+#' m2 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(inning_side)) + 
+#'            factor(stand) + factor(inning_side), data=noswing, family = binomial(link='logit'))
+#' strikeFX(noswing, geom="bin", model=m2, density1=list(inning_side="top"), 
+#'          density2=list(inning_side="bottom"), layer=facet_grid(.~stand), binwidth=c(.5, .5))
 #' }
 #' 
 
-strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.alpha=1/3, color = "pitch_types", fill = "des", layer = list(), model, model.save=TRUE, density1=list(), density2=list(), limitz=c(-2.5, 2.5, 0, 5), adjust=FALSE, draw_zones=TRUE, parent=FALSE, ...){ 
+strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.alpha=1/3, color = "pitch_types", fill = "des", layer = list(), model, model.save=TRUE, density1=list(), density2=list(), limitz=c(-2, 2, 0.5, 4.5), adjust=FALSE, draw_zones=TRUE, parent=FALSE, ...){ 
   px=pz_adj=..density..=top=bottom=right=left=x=y=z=NULL #ugly hack to comply with R CMD check
   if (any(!geom %in% c("point", "bin", "hex", "tile", "subplot2d"))) warning("Current functionality is designed to support the following geometries: 'point', 'bin', 'hex', 'tile', 'subplot2d'.")
   if ("pitch_type" %in% names(data)) { #Add descriptions as pitch_types
@@ -58,14 +70,14 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
                    pitch_types=c("Sinker", "Fastball (four-seam)", "Intentional Walk", "Slider", "Curveball", "Changeup", 
                                  "Fastball (two-seam)", "Fastball (cutter)", "Pitchout", "Knuckleball", "Fastball (split-finger)",
                                  "Fastball", "Unknown", "Forkball"))
-    data <- join(data, types, by = "pitch_type", type="inner")
+    data <- plyr::join(data, types, by = "pitch_type", type="inner")
   } 
   if (!"b_height" %in% names(data)) {
     warning("pitchRx assumes the height of each batter is recorded as 'b_height'. Since there is no such column, we will assume each batter has a height of 6'2''")
     data$b_height <- "6-2"
   }
   if (!color %in% names(data)) {
-    warning(paste(color, "is the variable that defines coloring but it isn't in the dataset!"))
+    #warning(paste(color, "is the variable that defines coloring but it isn't in the dataset!"))
     color <- ""
   }
   locations <- c("px", "pz")
@@ -85,7 +97,7 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
   } else {
     FX$pz_adj <- FX$pz # "adjusted" vert locations
   }
-  FX <- join(FX, boundaries[[2]], by="stand", type="inner")
+  FX <- plyr::join(FX, boundaries[[2]], by="stand", type="inner")
   for (i in locations) FX[,i] <- as.numeric(FX[,i])
   #Recycled plot formats
   labelz <- labs(x = "Horizontal Pitch Location", y = "Height from Ground")
@@ -124,10 +136,6 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
     ind <- vars %in% c("px", "pz")
     extras <- vars[!ind] #we need to either condition on or facet by these variables
     if (!all(c("px", "pz") %in% vars)) warning("The horizontal location and vertical locations of each pitch should included as covariates in your model as 'px' and 'pz'.")
-    #old attempt to extract covariates relevant for facetting
-    #byes <- sapply(model$smooth, function(x) x$by)
-    #tmp <- gsub(".*\\(", "", byes)            #remove anything before "("
-    #faucets <- unique(gsub("\\)", "", tmp))   #compare this to facets
 
     #check if the facetting scheme makes sense for the model. if not, give warning and throw out facet call
     if (!is.null(facets)){ #facets exist
@@ -154,29 +162,29 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
     #'given' variables have one 'conditioned' value (should be the mode for factors and closest obs. to the median for numerics)
     givens <- var_summary[!names(var_summary) %in% fixed]
     for (i in seq_along(givens)) {
+      message(paste("Conditioning on:", names(givens[i]), " == ", givens[[i]]))
       grid[names(givens)[i]] <- givens[[i]]
     }
-    #now fit the model for each unique value necessary for facetting
+    #now make predictions for each unique value of the facetting variables
     if (!is.null(facets)) {
       sheet <- NULL
-      for (i in facets) {
-        vals <- unique(FX[,i])
-        grid[i] <- NA
-        for (j in vals) {
-          grid[i] <- j
-          if (identical(density1, density2)) { #probabilities are not differenced
-            grid$z <- predict(fit, grid, type="response") #add an option to look at se!?! see ?predict.gam
-          } else { #probabilities are differenced
-            grid1 <- grid
-            grid1[names(density1)] <- density1[[1]]
-            z1 <- predict(fit, grid1, type="response")
-            grid2 <- grid
-            grid2[names(density2)] <- density2[[1]]
-            z2 <- predict(fit, grid2, type="response")
-            grid$z <- z1 - z2
-          }
-          sheet <- rbind(sheet, grid)
+      vals <- unique(FX[facets])
+      val.names <- names(FX[facets])
+      for (i in seq_len(dim(vals)[1])) {
+        greed <- suppressWarnings(cbind(grid, vals[i,]))
+        names(greed) <- c(names(grid), val.names)
+        if (identical(density1, density2)) { #probabilities are not differenced
+          greed$z <- predict(fit, greed, type="response") #add an option to look at se!?! see ?predict.gam
+        } else { #probabilities are differenced
+          greed1 <- greed
+          greed1[names(density1)] <- density1[[1]]
+          z1 <- predict(fit, greed1, type="response")
+          greed2 <- greed
+          greed2[names(density2)] <- density2[[1]]
+          z2 <- predict(fit, greed2, type="response")
+          greed$z <- z1 - z2
         }
+        sheet <- rbind(sheet, greed)
       }
     } else { #no facets
       if (identical(density1, density2)) { #probabilities are not differenced
@@ -193,24 +201,23 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
       grid$z <- predict(fit, grid, type="response")
       sheet <- grid
     }
-    
+    #for (i in factors) sheet[[i]] <- factor(sheet[[i]])
     p <- plotDensity(sheet, boundaries, contour, geom, ...)
     p <- p + white_zone
     if (any(sheet$z < 0)) col_scale <- scale_fill_gradient2(midpoint=0) else col_scale <- NULL
     return(p+labelz+xrange+yrange+layers+col_scale)
   }
-# DAMN YOU CRAN!
-#   if (geom %in% "subplot2d") { #special handling for subplotting
-#     if (!require(ggsubplot)) {
-#       message("The 'subplot2d' geom requires library(ggsubplot)!")
-#       return(NULL)
-#     }
-#     require(ggsubplot)
-#     return(ggplot(data=FX)+labelz+xrange+yrange+
-#              geom_subplot2d(aes(x=px, y=pz_adj, 
-#                     subplot = geom_bar(aes_string(x=fill, fill = fill))), ...)+
-#              black_zone+layers)
-#   }
+  if (geom %in% "subplot2d") { #special handling for subplotting
+    if (!require(ggsubplot)) {
+      message("The 'subplot2d' geom requires library(ggsubplot)!")
+      return(NULL)
+    }
+    require(ggsubplot)
+    return(ggplot(data=FX)+labelz+xrange+yrange+
+             geom_subplot2d(aes(x=px, y=pz_adj, 
+                    subplot = geom_bar(aes_string(x=fill, fill = fill))), ...)+
+             black_zone+layers)
+  }
   if (geom %in% c("bin", "hex", "tile")) { #special handling for (2D) density geometries
     if (identical(density1, density2)) { #densities are not differenced
       FX1 <- subsetFX(FX, density1)
@@ -281,7 +288,7 @@ plotDensity <- function(dens, bounds, contour, geom, ...){
       dens$stand <- c(rep("R", nhalf), rep("L", nhalf), "L")
     }
   }
-  dens.df <- join(dens, bounds[[2]], type="inner") #defaults to join "by" all common variables
+  dens.df <- suppressMessages(plyr::join(dens, bounds[[2]], type="inner")) #defaults to join "by" all common variables
   p <- ggplot(data=dens.df)
   if (geom %in% "hex") {
     p <- p + stat_summary_hex(aes(x=px, y=pz, z=z), ...)
