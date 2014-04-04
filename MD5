@@ -1,7 +1,7 @@
-756013bbaf86838a84f2bdc13d4911ba *DESCRIPTION
+cd96e59fad4cab38f1fbce6c0790734c *DESCRIPTION
 392b7c3d835b58868fd85ab5364857de *LICENSE
 a767fd3afa2d3c1191499cf9d689820a *NAMESPACE
-942a4c73d614d8dd06504ed2b4523346 *NEWS
+ece82ba13aabab23f9459270d1bf9735 *NEWS
 5f875976fc9d3eb2271307ff6b86fd38 *R/animateFX.R
 1bbba2624741d11defd8c06cb35216c8 *R/deprecated.R
 5a6e93ed06637b5590e5958c2a69166e *R/fields.R
@@ -13,12 +13,12 @@ bb679cbebfc43690f1c41e5037706da1 *R/getFacets.R
 5bcdccc8ad4a8f2ef063741d5c2e4330 *R/interactiveFX.R
 2371767bff079d02abd0a1b68fe6c7d5 *R/pitches.R
 4a5c2f9f102c33bfc01df4773484ae3f *R/players.R
-3383c1dfd858eb6eb3d90e92f4650a9d *R/scrape.R
+340f10d1eea8948bf0a358bd70fb3e8b *R/scrape.R
 17a999800f1a1f9be3a1b6e59d04d114 *R/strikeFX.R
-15cecd5cc6be67576eb854f1d48772f8 *data/fields.rda
-499793845d04cc1c438b18bbe45155b1 *data/gids.rda
-e6df5e3fc3df389dc4433cf354f203c6 *data/pitches.rda
-c6daee45c601ba0a2a1f12cda7dd56cd *data/players.rda
+8c092dbff6f8ae684cbb74264716536d *data/fields.rda
+b37be6a6206ae72425c3e9609bd92c50 *data/gids.rda
+54161fd606c2ced531ae5d98c23484f0 *data/pitches.rda
+064e7c5b99ee8216571e29996a66dd17 *data/players.rda
 20c34fa45f479d1d20fc34afa8ca79ba *inst/CITATION
 4dd5dab1db0ee501e724c3896177aa10 *inst/shiny/server.R
 490cbbffa9189c3b47de51aeaa95c202 *inst/shiny/ui.R
