@@ -3,16 +3,15 @@
 #' Three-dimensional plot of pitch trajectories.
 #'
 #' @param data data.frame with appropriately named PITCHf/x variables
-#' @param spheres Use \link{spheres3d} or \link{plot3d}?
+#' @param spheres Use rgl::spheres3d or rgl::plot3d?
 #' @param color variable used to control coloring scheme.
 #' @param avg.by variable used as an index for averaging over PITCHf/x parameters
 #' @param interval the amount of time between 'snapshots'
 #' @param alpha color transparency
 #' @param show.legend print coloring legend in R console?
-#' @param ... other param passed onto \link{spheres3d} or \link{plot3d}
+#' @param ... other param passed onto rgl::spheres3d or rgl::plot3d
 #' @return rgl object is returned.
 #' @export
-#' @import rgl
 #' @examples
 #' 
 #' data(pitches)
@@ -24,6 +23,7 @@
 #' 
 
 interactiveFX <- function(data, spheres=TRUE, color="pitch_types", avg.by, interval=0.01, alpha=1, show.legend=TRUE, ...){
+  if (!require('rgl')) warning("This function requires the rgl package. Please try to install.packages('rgl') before using.")
   if ("pitch_type" %in% names(data)) { #Add descriptions as pitch_types
     data$pitch_type <- factor(data$pitch_type)
     pitch.type <- c("SI", "FF", "IN", "SL", "CU", "CH", "FT", "FC", "PO", "KN", "FS", "FA", NA, "FO")
