@@ -26,7 +26,6 @@
 #' @return Returns a list of data frames (or nothing if writing to a database).
 #' @export
 #' @import XML2R
-#' @importFrom lubridate days
 #' @examples
 #' \dontrun{
 #' # Collect PITCHf/x (and other data from inning_all.xml files) from 
@@ -36,14 +35,21 @@
 #' dat <- scrape(start = "2013-08-01", end = "2013-08-01", async = TRUE)
 #' 
 #' # Scrape PITCHf/x from Minnesota Twins 2011 season
-#' data(gids, package="pitchRx")
+#' data(gids, package = "pitchRx")
 #' twins11 <- gids[grepl("min", gids) & grepl("2011", gids)]
-#' dat <- scrape(game.ids=twins11[1]) #scrapes 1st game only
+#' dat <- scrape(game.ids = twins11[1]) #scrapes 1st game only
+#' 
+#' data(nonMLBgids, package = "pitchRx")
+#' # Grab IDs for triple A games on June 1st, 2011
+#' # This post explains more about obtaining game IDs with regular expressions --
+#' # http://baseballwithr.wordpress.com/2014/06/30/pitchrx-meet-openwar-4/
+#' aaa <- nonMLBgids[grepl("2011_06_01_[a-z]{3}aaa_[a-z]{3}aaa", nonMLBgids)]
+#' dat <- scrape(game.ids = aaa)
 #' 
 #' # Create SQLite database, then collect and store data in that database
 #' library(dplyr)
 #' my_db <- src_sqlite("Gameday.sqlite3")
-#' scrape(start = "2013-08-01", end = "2013-08-01", connect=my_db$con)
+#' scrape(start = "2013-08-01", end = "2013-08-01", connect = my_db$con)
 #' 
 #' # Collect other data complementary to PITCHf/x and store in database
 #' files <- c("inning/inning_hit.xml", "miniscoreboard.xml", "players.xml")
@@ -57,6 +63,7 @@
 #'                    by = c("num", "gameday_link"))
 #' que$query #refine sql query if you'd like
 #' pitchfx <- collect(que) #submit query and bring data into R
+#' 
 #' }
 #' 
 
@@ -116,6 +123,10 @@ scrape <- function(start, end, game.ids, suffix = "inning/inning_all.xml", conne
     dayDir <- unique(gsub("/gid_.*", "", gameDir))
     scoreboards <- paste0(dayDir, "/miniscoreboard.xml")
     obs <- XML2Obs(scoreboards, as.equiv=TRUE, url.map=FALSE, ...)
+    # These observations typically show up *before* the game is played
+    # I'm not so sure I want to support them....
+    illegal <- paste0("games//game//", c("review","home_probable_pitcher", "away_probable_pitcher"))
+    obs <- obs[!names(obs) %in% illegal]
     nms <- names(obs)
     #simplify names
     nms <- gsub("^games//game//game_media//media$", "media", nms)
@@ -199,7 +210,11 @@ scrape <- function(start, end, game.ids, suffix = "inning/inning_all.xml", conne
     inning.files <- paste0(gameDir, "/inning/inning_all.xml")
     n.files <- length(inning.files)
     #cap the number of files to be parsed at once (helps avoid exhausting memory)
-    cap <- min(100, n.files)
+    cap <- min(200, n.files)
+    if (n.files > cap && missing(connect)) {
+      warning("play-by-play data for just the first 200 games will be returned (even though you've asked for", n.files, ")",
+              "If you want/need more, please consider using the 'connect' argument.")
+    }
     n.loops <- ceiling(n.files/cap)
     for (i in seq_len(n.loops)) {
       #grab subset of files to be parsed
@@ -451,22 +466,22 @@ updateGids <- function(last.date, end) {
 
 #Take a start and an end date and make vector of "year_XX/month_XX/day_XX"
 dates2urls <- function(first.day, last.day) {
-  diff <- as.numeric(last.day - first.day)
-  dates <- first.day + c(0:diff) * lubridate::days(1)
-  years <- substr(dates, 0, 4)
-  months <- substr(dates, 6, 7)
-  days <- substr(dates, 9, 10)
-  mnths <- formatC(months, width = 2, flag = "0")
-  dys <- formatC(days, width = 2, flag = "0")
-  paste0("year_", years, "/month_", mnths, "/day_", dys)
+  dates <- seq(as.Date(first.day), as.Date(last.day), by = "day")
+  paste0("year_", format(dates, "%Y"), "/month_", 
+         format(dates, "%m"), "/day_", format(dates, "%d"))
 }
 
-#Take a game ID and construct the appropriate url prefix
+# Take a game ID and construct url path for each specific game
 gids2urls <- function(x) {
-  elements <- strsplit(x, split="_")
-  urls <- sapply(elements, function(y) paste0("http://gd2.mlb.com/components/game/mlb/year_", y[2], 
-                                              "/month_", y[3], "/day_", y[4], "/"))
-  return(paste0(urls, x))
+  root <- "http://gd2.mlb.com/components/game/"
+  # Assume the league is 'mlb' unless we find evidence otherwise
+  league <- rep("mlb", length(x))
+  not.mlb <- !grepl("mlb", x)
+  # If 'mlb' does not appear in the gid, use the home team's league
+  if (any(not.mlb)) league[not.mlb] <- substr(x[not.mlb], 26, 28)
+  base <- paste0(root, league)
+  paste0(base, "/year_", substr(x, 5, 8), "/month_", substr(x, 10, 11), 
+         "/day_", substr(x, 13, 14), "/", x)
 }
 
 #Find the proper subset of game IDs based on start/end dates
@@ -510,6 +525,8 @@ format.table <- function(dat, name) {
   if ("game" %in% name) {
     dat$url_scoreboard <- dat$url
     dat$url <- paste0(gsub("miniscoreboard.xml", "", dat$url), "gid_", dat$gameday_link, "/inning/inning_all.xml")
+    # These fields only show up for suspended games...I don't think they're worth tracking...
+    dat <- dat[, !names(dat) %in% c("runner_on_base_status", "runner_on_1b")]
   } else { #create a 'gameday_link' column for easier linking of tables
     if (length(grep("^url$", names(dat)))) dat$gameday_link <- sub("/.*", "", sub(".*gid", "gid", dat$url))
   }

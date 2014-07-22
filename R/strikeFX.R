@@ -3,7 +3,7 @@
 #' A suite of bivariate plots with "px" on the horizontal axis and "pz" on the vertical axis.
 #'
 #' @param data PITCHf/x data to be visualized.
-#' @param geom plotting geometry. Current choices are: "point", "hex", "bin" and "tile" 
+#' @param geom plotting geometry. Current choices are: "point", "hex", "bin", "tile" and "raster"
 #' @param contour logical. Should contour lines be included?
 #' @param point.size Size of points (when geom="point")
 #' @param point.alpha plotting transparency parameter (when geom="point").
@@ -50,20 +50,19 @@
 #' library(mgcv)
 #' m1 <- bam(strike ~ s(px, pz, by=factor(stand)) + 
 #'                factor(stand), data=noswing, family = binomial(link='logit'))
+#' # geom will automatically be set to 'raster'
 #' strikeFX(noswing, model=m1, layer=facet_grid(.~stand))
 #' 
-#' #If sample size is an issue, try increasing the binwidths
-#' strikeFX(noswing, model=m1, layer=facet_grid(.~stand), binwidth=c(.5,.5))
-#' m2 <- mgcv::bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(inning_side)) + 
+#' m2 <- bam(strike ~ s(px, pz, by=factor(stand)) + s(px, pz, by=factor(inning_side)) + 
 #'            factor(stand) + factor(inning_side), data=noswing, family = binomial(link='logit'))
-#' strikeFX(noswing, geom="bin", model=m2, density1=list(inning_side="top"), 
-#'          density2=list(inning_side="bottom"), layer=facet_grid(.~stand), binwidth=c(.5, .5))
+#' strikeFX(noswing, model=m2, density1=list(inning_side="top"), 
+#'          density2=list(inning_side="bottom"), layer=facet_grid(.~stand))
 #' }
 #' 
 
 strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.alpha=1/3, color = "pitch_types", fill = "des", layer = list(), model, model.save=TRUE, density1=list(), density2=list(), limitz=c(-2, 2, 0.5, 4.5), adjust=FALSE, draw_zones=TRUE, parent=FALSE, ...){ 
   px=pz_adj=..density..=top=bottom=right=left=x=y=z=NULL #ugly hack to comply with R CMD check
-  if (any(!geom %in% c("point", "bin", "hex", "tile", "subplot2d"))) warning("Current functionality is designed to support the following geometries: 'point', 'bin', 'hex', 'tile', 'subplot2d'.")
+  if (any(!geom %in% c("point", "bin", "hex", "raster", "tile", "subplot2d"))) warning("Current functionality is designed to support the following geometries: 'point', 'bin', 'hex', 'tile', 'subplot2d'.")
   if ("pitch_type" %in% names(data)) { #Add descriptions as pitch_types
     data$pitch_type <- factor(data$pitch_type)
     types <- data.frame(pitch_type=c("SI", "FF", "IN", "SL", "CU", "CH", "FT", "FC", "PO", "KN", "FS", "FA", NA, "FO"),
@@ -225,13 +224,14 @@ strikeFX <- function(data, geom = "point", contour=FALSE, point.size=3, point.al
                     subplot = geom_bar(aes_string(x=fill, fill = fill))), ...)+
              black_zone+layers)
   }
-  if (geom %in% c("bin", "hex", "tile")) { #special handling for (2D) density geometries
+  if (geom %in% c("bin", "hex", "tile", "raster")) { #special handling for (2D) density geometries
     if (identical(density1, density2)) { #densities are not differenced
       FX1 <- subsetFX(FX, density1)
       t <- ggplot(data=FX1, aes(x=px, y=pz_adj))+labelz+xrange+yrange
       if (geom %in% "bin") t <- t + geom_bin2d(...) 
       if (geom %in% "hex") t <- t + geom_hex(...)
-      if (geom %in% "tile") t <- t + stat_density2d(geom="tile", aes(fill = ..density..), contour = FALSE)
+      if (geom %in% c("tile", "raster")) 
+        t <- t + stat_density2d(geom = geom, aes(fill = ..density..), contour = FALSE, ...)
       #Contours and strikezones are drawn last
       if (contour) t <- t + geom_density2d()
       t <- t + white_zone
@@ -296,12 +296,14 @@ plotDensity <- function(dens, bounds, contour, geom, ...){
     }
   }
   dens.df <- suppressMessages(plyr::join(dens, bounds[[2]], type="inner")) #defaults to join "by" all common variables
-  p <- ggplot(data=dens.df)
-  if (geom %in% "hex") {
-    p <- p + stat_summary_hex(aes(x=px, y=pz, z=z), ...)
-  } else {
-    p <- p + stat_summary2d(aes(x=px, y=pz, z=z), ...) 
-  }
+  # One should use geom_raster when tiles are same size
+  p <- ggplot(data=dens.df, aes(x=px, y=pz, fill=z)) + geom_raster(...)
+  # Would anyone really want to plot a *function* of the probabilities???
+#   if (geom %in% "hex") {
+#     p <- p + stat_summary_hex(aes(x=px, y=pz, z=z), ...)
+#   } else {
+#     p <- p + stat_summary2d(aes(x=px, y=pz, z=z), ...) 
+#   }
   if (contour) p <- p + stat_contour(aes(x=px, y=pz, z=z)) #passing binwidth here throws error
   return(p)
 }
