@@ -1,6 +1,6 @@
 Package: pitchRx
 Title: Tools for Harnessing MLBAM Gameday data and Visualizing PITCHf/x
-Version: 1.5
+Version: 1.6
 Author: Carson Sievert <sievert@iastate.edu>
 Maintainer: Carson Sievert <sievert@iastate.edu>
 Description: With pitchRx, one can easily obtain Major League Baseball Advanced
@@ -17,13 +17,13 @@ Description: With pitchRx, one can easily obtain Major League Baseball Advanced
 License: MIT + file LICENSE
 Depends: R (>= 2.15.1), ggplot2 (>= 0.9.3)
 Imports: XML2R (>= 0.0.6), plyr, MASS, hexbin, mgcv
-Suggests: DBI, dplyr, RSQLite, RSQLite.extfuns, parallel, knitr,
-        animation, shiny, testthat, ggsubplot, rgl
-Date: 2014-07-22
+Suggests: DBI, dplyr, RSQLite (>= 1.0.0), parallel, knitr, animation,
+        shiny, testthat, ggsubplot, rgl
+Date: 2014-10-26
 LazyData: true
 URL: http://cpsievert.github.com/pitchRx
 BugReports: http://github.com/cpsievert/pitchRx/issues
-Packaged: 2014-07-23 16:53:52 UTC; cpsievert
+Packaged: 2014-10-26 22:58:02 UTC; cpsievert
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-07-23 22:35:11
+Date/Publication: 2014-10-27 07:12:34

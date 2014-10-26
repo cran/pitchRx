@@ -71,22 +71,20 @@ scrape <- function(start, end, game.ids, suffix = "inning/inning_all.xml", conne
   # Run some checks to make sure we can append to the database connection
   # Also, try to append a 'date' column to the 'atbat' table (if it's missing)
   if (!missing(connect)) {
-    if (!require('DBI')) warning("You will need the DBI package to write tables to a database.")
-    valid.conn <- c("MySQLConnection", "SQLiteConnection") #DBI::dbWriteTable method only works for these two classes
-    if (!class(connect) %in% valid.conn) warning("You need either a MySQLConnection or SQLiteConnection.")
-    fieldz <- plyr::try_default(dbListFields(connect, "atbat"), NULL, quiet = TRUE)
+    if (!requireNamespace('DBI')) warning("You will need the DBI package to write tables to a database.")
+    fieldz <- plyr::try_default(DBI::dbListFields(connect, "atbat"), NULL, quiet = TRUE)
     if (!"date" %in% fieldz && !is.null(fieldz)) {
       msg <- "An 'atbat' table without the 'date' column was detected\n"
-      if (!require('dplyr') || packageVersion("dplyr") < 0.2) {
+      if (!requireNamespace('dplyr') || packageVersion("dplyr") < 0.2) {
         message(msg, "To automatically append 'date', please install/update the dplyr and DBI packages \n", 
                 "More details are discussed here -- \n",
                 "http://baseballwithr.wordpress.com/2014/04/13/modifying-and-querying-a-pitchfx-database-with-dplyr/")
       } else {
         message(msg, "A 'date' column will now be appended. Please be patient.")
         new.col <- if ("gameday_link" %in% fieldz) "SUBSTR(gameday_link, 15, -10)" else "SUBSTR(url, 80, -10)"
-        res <- dbSendQuery(connect, paste("CREATE TABLE atbat_temp AS SELECT *,", new.col, "AS date FROM atbat"))
-        dbRemoveTable(connect, name = 'atbat')
-        dbSendQuery(connect, 'ALTER TABLE atbat_temp RENAME TO atbat')
+        res <- DBI::dbSendQuery(connect, paste("CREATE TABLE atbat_temp AS SELECT *,", new.col, "AS date FROM atbat"))
+        DBI::dbRemoveTable(connect, name = 'atbat')
+        DBI::dbSendQuery(connect, 'ALTER TABLE atbat_temp RENAME TO atbat')
       }
     }
   }
@@ -114,7 +112,8 @@ scrape <- function(start, end, game.ids, suffix = "inning/inning_all.xml", conne
 #       warning("I detected urls in your database that match your query! I will not be scraping these files")
 #     }
 
-  #upload fields so we have table templates (for exporting to database)
+  # upload fields so we have table templates (for exporting to database)
+  fields = NULL # happy BDR?
   env2 <- environment()
   data(fields, package="pitchRx", envir=env2)
 
@@ -332,8 +331,7 @@ makeUrls <- function(start, end, gids="infer") {
       data(gids, package="pitchRx", envir=env)
       last.game <- strsplit(gids[length(gids)], split="_")[[1]]
       last.date <- as.POSIXct(paste(last.game[2], last.game[3], last.game[4], sep="-"))
-      #need to rework this guy
-      #if (last.date < end) gids <- c(gids, updateGids(max(start, last.date), end))
+      if (last.date < end) gids <- c(gids, updateGids(max(start, last.date), end))
       return(gids2urls(subsetGids(gids, first=start, last=end)))
     }
   } else {
@@ -461,7 +459,7 @@ updateGids <- function(last.date, end) {
   obs <- XML2Obs(scoreboards) #Note to future self -- using `xpath='//game[@gameday_link]'` for future games gives the RCurl error -- Recv failure: Connection reset by peer 
   obs2 <- obs[grep("^games//game$", names(obs))]
   gids <- collapse_obs(obs2)[,"gameday_link"]
-  return(gids[!is.na(gids)])
+  paste0("gid_", gids[!is.na(gids)])
 }
 
 #Take a start and an end date and make vector of "year_XX/month_XX/day_XX"
